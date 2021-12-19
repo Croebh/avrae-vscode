@@ -1,0 +1,59 @@
+{
+    "scopeName": "source.draconic",
+    "patterns": [{ "include": "#expression" }],
+    "repository": {
+      "expression": {
+        "patterns": [
+            { "include": "#avrae" }, 
+            { "include": "#drac1" }, 
+            { "include": "#drac2" }, 
+            { "include": "#dconstants1" }, 
+            { "include": "#dconstants2" }
+        ]
+      },
+      "avrae": {
+        "match": "\\B\\-[title|desc|image|footer|f|phrase|sb|attack|i|h|here|d|b|thumb|color|adv|dis|sadv|sdis]+[0-9]*\\b",
+        "name": "keyword.letter"
+      },
+      "dconstants1": {
+        "match": "(<)[^<>]+(>)",
+        "name": "support.type.property-name"
+      },
+      "dconstants2": {
+        "match": "({)[^{}]+(})",
+        "name": "support.type.property-name"
+      },
+      "drac1": {
+        "begin": "{{",
+        "end": "}}",
+        "beginCaptures": {
+          "0": { "name": "meta.block punctuation.section.block.begin entity.name.tag" }
+        },
+        "endCaptures": {
+          "0": { "name": "meta.block punctuation.section.block.end entity.name.tag" }
+        },
+        "name": "meta.embedded.block.python",
+        "patterns": [
+            {
+                "include": "source.python"
+            }
+        ]
+      },
+      "drac2": {
+        "begin": "<drac2>",
+        "end": "</drac2>",
+        "beginCaptures": {
+          "0": { "name": "meta.block punctuation.section.block.begin entity.name.tag" }
+        },
+        "endCaptures": {
+          "0": { "name": "meta.block punctuation.section.block.end entity.name.tag" }
+        },
+        "name": "meta.embedded.block.python",
+        "patterns": [
+            {
+                "include": "source.python"
+            }
+        ]
+      }
+    }
+  }

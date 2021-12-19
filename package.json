@@ -1,6 +1,7 @@
 {
-	"name": "avrae-test",
-	"displayName": "avrae-test",
+	"name": "avrae-utilities",
+	"displayName": "Avrae Utilities",
+	"publisher": "Croebh",
 	"description": "",
 	"version": "0.0.1",
 	"engines": {
@@ -10,14 +11,19 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:avrae-test.getGvar"
+		"onCommand:avrae-utilities.getGvar",
+		"onCommand:avrae-utilities.updateGvar"
 	],
 	"main": "./extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "avrae-test.getGvar",
-				"title": "Avrae Utilities: Get Gvar"
+				"command": "avrae-utilities.getGvar",
+				"title": "Avrae Utilities: Get GVAR"
+			},
+			{
+				"command": "avrae-utilities.updateGvar",
+				"title": "Avrae Utilities: Update GVAR"
 			}
 		],
 		"languages": [

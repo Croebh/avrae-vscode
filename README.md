@@ -1,5 +1,8 @@
-# Avrae Utilities for SublimeText
+# Avrae Utilities for VSCode
 A plugin for VSCode containing utilities for the [Avrae](https://avrae.io) Discord bot.
+
+## Donations
+If you like what I do, please support me [on Ko-Fi!](https://ko-fi.com/croebh)
 
 ## Important Note
 This package makes a remote connection to the Avrae API in order to collect and update the information. It only does this by request, and will not make any outward connection without being prompted to by the user.

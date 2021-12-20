@@ -2,13 +2,16 @@
 	"name": "avrae-utilities",
 	"displayName": "Avrae Utilities",
 	"publisher": "Croebh",
+	"repository": "https://github.com/Croebh/avrae-vscode",
 	"description": "",
-	"version": "0.0.1",
+	"version": "0.0.2",
+	"keywords": ["avrae", "dungeons and dragons"],
 	"engines": {
 		"vscode": "^1.63.0"
 	},
 	"categories": [
-		"Other"
+		"Other",
+		"Programming Languages"
 	],
 	"activationEvents": [
 		"onCommand:avrae-utilities.getGvar",
@@ -54,8 +57,7 @@
 				"avrae.token": {
 					"type": "string",
 					"default": "",
-					"description": "This is where you paste your avrae-token from the  avrae.io website. You can find information on how to get this token in the readme on https://github.com/Croebh/avrae-sublime\n\nPlease keep this token private, anyone who gains access to this token could potentially gain access to your Discord account.",
-					"format": "password"
+					"markdownDescription": "In order for this plugin to have your permissions to grab and update your GVARs, Workshop Aliases, or Workshop Snippets, you need to give it your token.\n1. Go to [Avrae](https://avrae.io) and log in to the dashboard\n2. Press F12 to open the DevTools\n3. Go to the 'Application' tab\n4. On the left, select 'https://avrae.io' under 'Local Storage'\n5. Copy the `Value` next to the `avrae-token` key\n6. Paste that setting here\n# Note\nPlease keep this token private, as anyone who gains access to this token could potentially gain access to your Discord account."
 				}
 			}
 		}

@@ -4,8 +4,11 @@
 	"publisher": "Croebh",
 	"repository": "https://github.com/Croebh/avrae-vscode",
 	"description": "",
-	"version": "0.0.2",
-	"keywords": ["avrae", "dungeons and dragons"],
+	"version": "0.1.0",
+	"keywords": [
+		"avrae",
+		"dungeons and dragons"
+	],
 	"engines": {
 		"vscode": "^1.63.0"
 	},

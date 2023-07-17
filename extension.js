@@ -48,6 +48,9 @@ async function activate(context) {
 				ignoreFocusOut: true,
 				title: "What GVAR would you like to get Test?"
 			});
+			if(gvarID == undefined || gvarID == ""){
+				return
+			}
 			gvarID = gvarID.match(uuid_pattern)[0]
 		}
 

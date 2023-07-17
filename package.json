@@ -16,6 +16,9 @@
 		"Other",
 		"Programming Languages"
 	],
+	"extensionDependencies": [
+        "vscode.python"
+    ],
 	"activationEvents": [
 		"onCommand:avrae-utilities.getGvar",
 		"onCommand:avrae-utilities.updateGvar"
@@ -41,10 +44,15 @@
 				],
 				"extensions": [
 					".alias",
-					".snippet",
-					".gvar"
+					".snippet"
 				],
 				"configuration": "./language-configuration.json"
+			},
+			{
+				"id": "python",
+				"extensions": [
+					".gvar"
+				]
 			}
 		],
 		"grammars": [

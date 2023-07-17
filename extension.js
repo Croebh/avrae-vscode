@@ -4,11 +4,9 @@ const path = require("path");
 /**
  * @param {vscode.ExtensionContext} context
  */
-async function activate(context) {
-	const uuid_pattern = /[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/ig;
-
-	const token = vscode.workspace.getConfiguration('avrae').get('token');
-	const instance = await axios.create({
+async function setup() {
+	let token = vscode.workspace.getConfiguration('avrae').get('token');
+	let instance = await axios.create({
 		baseURL: "https://api.avrae.io/",
 		headers: {
 			'Authorization': token,
@@ -18,6 +16,18 @@ async function activate(context) {
 			'Sec-Fetch-Site': 'same-site',
 			'Sec-Fetch-Mode': 'cors',
 			'Sec-Fetch-Dest': 'empty'
+		}
+	});
+	return instance
+}
+
+async function activate(context) {
+	const uuid_pattern = /[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/ig;
+	let instance = await setup()
+	
+	vscode.workspace.onDidChangeConfiguration(async event => {
+		if (event.affectsConfiguration('avrae.token')) {
+			instance = await setup()
 		}
 	});
 	

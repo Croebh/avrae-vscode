@@ -34,9 +34,9 @@ async function activate(context) {
 	let getGvar = vscode.commands.registerCommand('avrae-utilities.getGvar', async function () {
 
 		// Check if file name == gvarID + '.gvar otherwise get
-		const editor = vscode.window.activeTextEditor;
+		let editor = vscode.window.activeTextEditor;
 		var gvarID = "";
-		var filePath = editor.document.fileName;
+		var filePath = editor ? editor.document.fileName : "";
 		var fileName = path.basename(filePath);
 		
 		if (editor && fileName.match(uuid_pattern)) {
@@ -46,8 +46,9 @@ async function activate(context) {
 		if (!gvarID) {
 			gvarID = await vscode.window.showInputBox({
 				ignoreFocusOut: true,
-				title: "What GVAR would you like to get?"
+				title: "What GVAR would you like to get Test?"
 			});
+			gvarID = gvarID.match(uuid_pattern)[0]
 		}
 
 		if (gvarID && uuid_pattern.test(gvarID)) {
@@ -74,9 +75,18 @@ async function activate(context) {
 				vscode.workspace.openTextDocument(
 					{
 						content: result.data.value, 
-						language: "json"
+						language: "python"
 					}
-				);
+				).then((new_doc) => {
+					vscode.window.showTextDocument(new_doc);
+					vscode.window.showInformationMessage(
+						"Remember to save the file as `" + gvarID + ".gvar` so it can be updated later.",
+						"Copy File Name").then((value) => {
+						if (value) {
+							vscode.env.clipboard.writeText(gvarID + ".gvar");
+						}
+					});
+				});
 			}
 			vscode.window.showInformationMessage("Gvar ID: " + gvarID + "\nSuccessfully Grabbed");
 		}
@@ -91,7 +101,7 @@ async function activate(context) {
 		// Check if file name == gvarID + '.gvar otherwise get
 		const editor = vscode.window.activeTextEditor;
 		var gvarID = "";
-		var filePath = editor.document.fileName;
+		var filePath = editor ? editor.document.fileName : "";
 		var fileName = path.basename(filePath);
 		
 		var firstLine = editor.document.lineAt(0);
@@ -106,7 +116,6 @@ async function activate(context) {
 
 		if (editor && fileName.match(uuid_pattern)) {
 			gvarID = fileName.match(uuid_pattern)[0]
-
 			const getResult = await instance.get("/customizations/gvars/" + gvarID);
 
 			if (getResult.status != 200 ) {

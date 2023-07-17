@@ -1,9 +1,7 @@
 const vscode = require('vscode');
 const axios = require('axios');
 const path = require("path");
-/**
- * @param {vscode.ExtensionContext} context
- */
+
 async function setup() {
 	let token = vscode.workspace.getConfiguration('avrae').get('token');
 	let instance = await axios.create({
@@ -21,8 +19,11 @@ async function setup() {
 	return instance
 }
 
+/**
+ * @param {vscode.ExtensionContext} context
+ */
 async function activate(context) {
-	const uuid_pattern = /[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/ig;
+	const uuid_pattern = /[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/i;
 	let instance = await setup()
 	
 	vscode.workspace.onDidChangeConfiguration(async event => {
@@ -39,20 +40,26 @@ async function activate(context) {
 		var filePath = editor ? editor.document.fileName : "";
 		var fileName = path.basename(filePath);
 		
-		if (editor && fileName.match(uuid_pattern)) {
-			gvarID = fileName.match(uuid_pattern)[0]
-		};
-
+		if (editor && uuid_pattern.test(fileName)) {
+			gvarID = fileName
+		} 
 		if (!gvarID) {
-			gvarID = await vscode.window.showInputBox({
+			let user_input = await vscode.window.showInputBox({
 				ignoreFocusOut: true,
-				title: "What GVAR would you like to get?"
+				title: "What Gvar would you like to get?",
+				prompt: "Enter a Gvar ID",
 			});
-			gvarID = gvarID.match(uuid_pattern)[0]
+			if (user_input) {
+				gvarID = user_input
+			} else {
+				vscode.window.showInformationMessage("No Gvar ID provided.");
+				return
+			}
 		}
 
-		if (gvarID && uuid_pattern.test(gvarID)) {
-			const result = await instance.get("/customizations/gvars/" + gvarID);
+		if (uuid_pattern.test(gvarID)) {
+			gvarID = gvarID.match(uuid_pattern)[0]
+			const result = await instance.get(`/customizations/gvars/${gvarID}`);
 			
 			if (result.status != 200 ) {
 				vscode.window.showInformationMessage("Error!");
@@ -72,35 +79,29 @@ async function activate(context) {
 					editBuilder.insert(new vscode.Position(0, 0), result.data.value);
 				});
 			} else {
-				vscode.workspace.openTextDocument(
-					{
-						content: result.data.value, 
-						language: "python"
-					}
-				).then((new_doc) => {
+				vscode.workspace.openTextDocument({
+					content: result.data.value, 
+					language: "python"
+				}).then((new_doc) => {
 					vscode.window.showTextDocument(new_doc);
 					vscode.window.showInformationMessage(
-						"Remember to save the file as `" + gvarID + ".gvar` so it can be updated later.",
+						`Remember to save the file as '${gvarID}.gvar' so it can be updated later.`,
 						"Copy File Name").then((value) => {
 						if (value) {
-							vscode.env.clipboard.writeText(gvarID + ".gvar");
+							vscode.env.clipboard.writeText(`${gvarID}.gvar`);
 						}
 					});
 				});
 			}
-			vscode.window.showInformationMessage("Gvar ID: " + gvarID + "\nSuccessfully Grabbed");
+			vscode.window.showInformationMessage(`Gvar ID: ${gvarID}\nSuccessfully Grabbed`);
+		} else {
+			vscode.window.showInformationMessage("Invalid Gvar ID provided.");
 		}
-
-		
-
-		
 	});
 
 	let updateGvar = vscode.commands.registerCommand('avrae-utilities.updateGvar', async function () {
 
-		// Check if file name == gvarID + '.gvar otherwise get
 		const editor = vscode.window.activeTextEditor;
-		var gvarID = "";
 		var filePath = editor ? editor.document.fileName : "";
 		var fileName = path.basename(filePath);
 		
@@ -115,19 +116,19 @@ async function activate(context) {
 		}
 
 		if (editor && fileName.match(uuid_pattern)) {
-			gvarID = fileName.match(uuid_pattern)[0]
-			const getResult = await instance.get("/customizations/gvars/" + gvarID);
+			var gvarID = fileName.match(uuid_pattern)[0]
+			const getResult = await instance.get(`/customizations/gvars/${gvarID}`);
 
 			if (getResult.status != 200 ) {
 				vscode.window.showInformationMessage("Error!");
 			}
 
-
 			var payload = getResult.data
 			payload.value = newData
-			const postResult = await instance.post("/customizations/gvars/" + gvarID, payload)
+			const postResult = await instance.post(`/customizations/gvars/${gvarID}`, payload)
+			
 			if (postResult.status === 200 ) {
-				vscode.window.showInformationMessage("Gvar ID: " + gvarID + "\nSuccessfully Updated");
+				vscode.window.showInformationMessage(`Gvar ID: ${gvarID}\nSuccessfully Updated`);
 			} else {
 				vscode.window.showInformationMessage("Error!");
 			}

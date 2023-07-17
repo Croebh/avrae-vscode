@@ -46,7 +46,7 @@ async function activate(context) {
 		if (!gvarID) {
 			gvarID = await vscode.window.showInputBox({
 				ignoreFocusOut: true,
-				title: "What GVAR would you like to get Test?"
+				title: "What GVAR would you like to get?"
 			});
 			gvarID = gvarID.match(uuid_pattern)[0]
 		}

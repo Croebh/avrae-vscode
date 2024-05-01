@@ -174,7 +174,7 @@ async function activate(context) {
 		const baseFile = path.basename(fileName, path.extname(fileName))
 		
 		// GVAR update
-		if (fileExtension == '.gvar' && baseFile.match(uuid_pattern)){
+		if (baseFile.match(uuid_pattern)){
 			updateGVAR()
 			return
 		}

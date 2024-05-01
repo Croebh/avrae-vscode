@@ -1,6 +1,7 @@
 const vscode = require('vscode');
 const axios = require('axios');
 const path = require("path");
+const fs = require("fs");
 
 async function setup() {
 	let token = vscode.workspace.getConfiguration('avrae').get('token');
@@ -99,48 +100,247 @@ async function activate(context) {
 		}
 	});
 
-	let updateGvar = vscode.commands.registerCommand('avrae-utilities.updateGvar', async function () {
+	let getCollection = vscode.commands.registerCommand('avrae-utilities.getCollection', async function () {
+		let collectionID = "";
+		let getContent = false
+		let currentCollection = getCollectionIO(true) ? `${getCollectionIO(true).collection}` : ""
 
-		const editor = vscode.window.activeTextEditor;
-		var filePath = editor ? editor.document.fileName : "";
-		var fileName = path.basename(filePath);
+		let user_input = await vscode.window.showInputBox({
+			ignoreFocusOut: true,
+			title: "What collection would you like to get?",
+			prompt: "Enter a Collection ID",
+			value: currentCollection
+		});
+
+		if (user_input){
+			collectionID = user_input
+		} else {
+			vscode.showInformationMessage("No Collection ID Provided");
+			return
+		}
+
+		let pull_all = await vscode.window.showInputBox({
+			ignoreFocusOut: true,
+			title: "Would you like to pull all the collection content into the current directory?",
+			prompt: "Pull all content?",
+			value: "yes"
+		})
+
+		if (pull_all && pull_all.toLowerCase() == 'yes'){
+			getContent = true
+		}
+
+		const result = await instance.get(`/workshop/collection/${collectionID}/full`);
+
+		if (result.status != 200){
+			vscode.window.showInformationMessage("Error!")
+		}
+
+		const collection = result.data.data
+
+
+		let collectionIO = {name: collection.name, collection: collection._id, aliases: {}, snippets: {}}
+
+		for (let alias of collection.aliases){
+			findNestedAliases(alias, collectionIO, "", getContent)
+		}
+
+		for (let snippet of collection.snippets){
+			collectionIO['snippets'][snippet.name] = snippet._id
+
+			if (getContent){ 
+				writeFile(`${snippet.name}.snippet`, snippet.code)
+	
+				if (snippet.docs.length > 0){
+					writeFile(`${snippet.name}.md`, snippet.docs)
+				}
+			}	
+		}
+
+		if (getContent && collection.description.length > 0){
+			writeFile("readme.md", collection.description)
+		}
+
+		writeFile('collection.io', JSON.stringify(collectionIO))
+
+		vscode.window.showInformationMessage(`Complete!`);
 		
-		var firstLine = editor.document.lineAt(0);
-		var lastLine = editor.document.lineAt(editor.document.lineCount - 1);
-		var textRange = new vscode.Range(firstLine.range.start, lastLine.range.end);
-		var newData = editor.document.getText(textRange);
+	});
+
+	let pushUpdate = vscode.commands.registerCommand('avrae-utilities.pushUpdate', async function() {
+		const editor = vscode.window.activeTextEditor;
+		const fileName = editor ? editor.document.fileName : ""
+		const fileExtension = path.extname(fileName).toLowerCase()
+		const baseFile = path.basename(fileName, path.extname(fileName))
+		
+		// GVAR update
+		if (fileExtension == '.gvar' && baseFile.match(uuid_pattern)){
+			updateGVAR()
+			return
+		}
+
+		const collectionIO = getCollectionIO()
+
+		if (['.snippet', '.md'].includes(fileExtension) && collectionIO.snippets.hasOwnProperty(baseFile)){
+			updateCollectionContent('Snippets')
+		} else if (['.alias', '.md'].includes(fileExtension) && collectionIO.aliases.hasOwnProperty(baseFile)){
+			updateCollectionContent('Aliases')
+		} else if (fileExtension == '.gvar' && baseFile.match(uuid_pattern)){
+			updateGVAR()
+		} else if (baseFile.toLowerCase() == "readme" && fileExtension == ".md"){
+			let getResult = await instance.get(`/workshop/collection/${collectionIO.collection}/full`);
+			if (getResult.status == 200 || getResult == 201){
+				let newData = getFileContent(fileName)
+				let collectionInfo = getResult.data.data
+				let payload = {name: collectionInfo.name, description: newData, image: collectionInfo.image}
+				let patchResult = await instance.patch(`/workshop/collection/${collectionIO.collection}`, payload);
+
+				if (patchResult.status != 200){
+					vscode.window.showInformationMessage("Error!");
+				} else {
+					vscode.window.showInformationMessage(`${collectionInfo.name} Readme \nSuccessfully Updated`)
+				}
+			}
+		} 
+	})
+
+	function findNestedAliases(alias, out, curName, getContent){
+		curName = `${curName} ${alias.name}`.trim()
+		out['aliases'][curName] = alias._id
+
+		if (getContent){ 
+			writeFile(`${curName}.alias`, alias.code)
+
+			if (alias.docs.length > 0){
+				writeFile(`${curName}.md`, alias.docs)
+			}
+		}	
+
+		for (let childAlias of alias.subcommands){
+			findNestedAliases(childAlias, out, curName, getContent)
+		}
+	}
+
+	function writeFile(fileName, content){
+		const editor = vscode.window.activeTextEditor;
+		var filePath = editor ? vscode.Uri.parse(editor.document.uri.toString().replace(/\/[^\/]*$/, '')) : vscode.workspace.workspaceFolders[0].uri
+		fs.writeFileSync(vscode.Uri.joinPath(filePath,`/${fileName}`).fsPath, content, {encoding: 'utf-8'})
+	}
+
+	function getFileContent(filePath){
+		let data = ""
+		try{
+			data = fs.readFileSync(filePath, 'utf-8')
+		} catch(e){
+			vscode.window.showInformationMessage("Unable to open file" + path.basename(filePath))
+			return null
+		}
+		return data
+	}
+
+	async function updateGVAR(){
+		const editor = vscode.window.activeTextEditor;
+		const fileName = editor ? editor.document.fileName : ""
+		const baseFile = path.basename(fileName, path.extname(fileName))
+		let newData = getFileContent(fileName)
 
 		if (newData.length > 100000) {
 			vscode.window.showInformationMessage("Gvars are limited to 100k characters.")
 			return
 		}
 
-		if (editor && fileName.match(uuid_pattern)) {
-			var gvarID = fileName.match(uuid_pattern)[0]
-			const getResult = await instance.get(`/customizations/gvars/${gvarID}`);
+		let gvarID = baseFile.match(uuid_pattern)[0]
 
-			if (getResult.status != 200 ) {
-				vscode.window.showInformationMessage("Error!");
+		const getResult = await instance.get(`/customizations/gvars/${gvarID}`);
+
+		if (getResult.status != 200 ) {
+			vscode.window.showInformationMessage("Error!");
+		}
+
+		var payload = getResult.data
+		payload.value = newData
+		const postResult = await instance.post(`/customizations/gvars/${gvarID}`, payload)
+		
+		if (postResult.status === 200 ) {
+			vscode.window.showInformationMessage(`Gvar ID: ${gvarID}\nSuccessfully Updated`);
+		} else {
+			vscode.window.showInformationMessage("Error!");
+		}
+	}
+
+	async function updateCollectionContent(key){
+		const editor = vscode.window.activeTextEditor;
+		const fileName = editor ? editor.document.fileName : ""
+		const fileExtension = path.extname(fileName).toLowerCase()
+		const baseFile = path.basename(fileName, path.extname(fileName))
+		const dataName = key == "Aliases" ? baseFile.split(" ").pop() : baseFile
+		const collectionIO = getCollectionIO()
+
+		let itemID = collectionIO[key.toLowerCase()][baseFile]
+		let newData = getFileContent(fileName)
+		let type = key.toLowerCase() == "aliases" ? "Alias" : "Snippet"
+		let status = null
+
+		if (!type || !itemID) {
+			vscode.window.showInformationMessage("Error!")
+			return
+		}
+
+		if ([".snippet", ".alias"].includes(fileExtension)){
+			if (newData.length > 100000){
+				vscode.window.showInformationMessage(`${key} are limited to 100k characters.`)
+				return
 			}
 
-			var payload = getResult.data
-			payload.value = newData
-			const postResult = await instance.post(`/customizations/gvars/${gvarID}`, payload)
-			
-			if (postResult.status === 200 ) {
-				vscode.window.showInformationMessage(`Gvar ID: ${gvarID}\nSuccessfully Updated`);
-			} else {
-				vscode.window.showInformationMessage("Error!");
+			let version = null
+			let payload = {name: dataName, content: newData}
+
+			await instance.post(`/workshop/${type.toLowerCase()}/${itemID}/code`, payload).then(res => {
+				version = res.data.data.version
+			})
+			const putResult = await instance.put(`/workshop/${type.toLowerCase()}/${itemID}/active-code`, {'version': version})
+			status = putResult.status
+		} else if (fileExtension == ".md"){
+			let payload = {name: dataName, docs: newData}
+			const patchResult = await instance.patch(`/workshop/${type.toLowerCase()}/${itemID}`, payload)
+			status = patchResult.status
+		} else {
+			vscode.window.showInformationMessage("Error!")
+			return
+		}
+
+		if (status == 200 || status == 201){
+			vscode.window.showInformationMessage(`${type}${fileExtension == ".md" ? " readme":""}: ${baseFile} (${itemID})\nSuccessfully Updated`)
+		} else {
+			vscode.window.showInformationMessage("Error!")
+		}
+	}
+
+	function getCollectionIO(suppressError = false){
+		const editor = vscode.window.activeTextEditor;
+		var filePath = editor ? path.dirname(editor.document.fileName) : vscode.workspace.workspaceFolders[0].uri
+
+		let collectionIO = null
+
+		try{
+			collectionIO = JSON.parse(getFileContent(path.join(filePath, '/collection.io')))
+		} catch (e){
+			if (!suppressError){
+				vscode.window.showInformationMessage("Unable to find collection.io")
 			}
-		};
-	});
+			return null
+		}
+
+		return collectionIO
+	}
 
 	// TODO
 
 	// Publish v0.0.1? haha
 
 	context.subscriptions.push(getGvar);
-	context.subscriptions.push(updateGvar);
+	context.subscriptions.push(getCollection)
+	context.subscriptions.push(pushUpdate)
 }
 
 function deactivate() {}

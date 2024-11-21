@@ -20,6 +20,7 @@
 		"vscode.python"
 	],
 	"main": "./extension.js",
+	"activationEvents": [],
 	"contributes": {
 		"commands": [
 			{

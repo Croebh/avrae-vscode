@@ -19,10 +19,6 @@
 	"extensionDependencies": [
 		"vscode.python"
 	],
-	"activationEvents": [
-		"onCommand:avrae-utilities.getGvar",
-		"onCommand:avrae-utilities.updateGvar"
-	],
 	"main": "./extension.js",
 	"contributes": {
 		"commands": [
@@ -31,8 +27,12 @@
 				"title": "Avrae Utilities: Get GVAR"
 			},
 			{
-				"command": "avrae-utilities.updateGvar",
-				"title": "Avrae Utilities: Update GVAR"
+				"command": "avrae-utilities.getCollection",
+				"title": "Avrae Utilities: Get Collection"
+			},
+			{
+				"command": "avrae-utilities.pushUpdate",
+				"title": "Avrae Utilities: Push Update"
 			}
 		],
 		"languages": [
@@ -52,6 +52,12 @@
 				"id": "python",
 				"extensions": [
 					".gvar"
+				]
+			},
+			{
+				"id": "json",
+				"extensions": [
+					".io"
 				]
 			}
 		],

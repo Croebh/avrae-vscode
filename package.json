@@ -4,7 +4,7 @@
 	"publisher": "Croebh",
 	"repository": "https://github.com/Croebh/avrae-vscode",
 	"description": "",
-	"version": "0.2.1",
+	"version": "0.6.0",
 	"keywords": [
 		"avrae",
 		"dungeons and dragons"
@@ -20,6 +20,7 @@
 		"vscode.python"
 	],
 	"main": "./extension.js",
+	"activationEvents": [],
 	"contributes": {
 		"commands": [
 			{

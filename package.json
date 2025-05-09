@@ -32,8 +32,20 @@
 				"title": "Avrae Utilities: Get Collection"
 			},
 			{
+				"command": "avrae-utilities.getCustomization",
+				"title": "Avrae Utilities: Get Personal Customizations"
+			},
+			{
 				"command": "avrae-utilities.pushUpdate",
 				"title": "Avrae Utilities: Push Update"
+			},
+			{
+				"command": "avrae-utilities.getSpellTome",
+				"title": "Avrae Utilties: Get Spell Tome"
+			},
+			{
+				"command": "avrae-utilities.getItemTome",
+				"title": "Avrae Utilties: Get Item Tome"
 			}
 		],
 		"languages": [
@@ -58,7 +70,10 @@
 			{
 				"id": "json",
 				"extensions": [
-					".io"
+					".io",
+					".spell",
+					".item",
+					".uvar"
 				]
 			}
 		],

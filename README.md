@@ -27,5 +27,17 @@ This plugin contains the following features:
 ### Draconic Syntax
 Handy syntax highlighting for the Draconic language (Subset of Python) that Avrae uses for aliasing. Its set up to work automatically on `*.alias`, `*.snippet`, and `*.gvar` filetypes.
 
-### Get and Update GVARs
-Using the ``Avrae Utilities: Get GVAR`` and ``Avrae Utilities: Update GVAR`` commands in the Command Pallete, you can retrieve and update GVARs without the need to visit the dashboard. If you want to save them locally, you can use the file extension ``.gvar``, and include the ID for the GVAR anywhere in the rest of the file name. You can have labels/descriptions before or after the ID, allowing you to organize your GVARs.
+### Get  GVARs
+Using the ``Avrae Utilities: Get GVAR`` command in the Command Pallete, you can retrieve GVARs without the need to visit the dashboard. If you want to save them locally, include the ID for the GVAR anywhere in the rest of the file name. You can have labels/descriptions before or after the ID, allowing you to organize your GVARs.
+
+## Get Collections
+Using the  ```Avrae Utilities: Get Collection``` command in the Command Pallete, you can retrieve all items in a collection. This will also create a `collection.io` file for mapping. You can either just update the `collection.io` file or pull all content form the collection. The names of the files must align with the name of the alias/snippet in the collection.
+
+## Get Item/Spell Tome
+Using the  ```Avrae Utilities: Get Item Tome``` or ```Avrae Utilties: Get Spell Tome```  commands in the Command Pallete, you can retrieve all items in a homebrew tome. If you want to save them locally, include the ID of the tome anywhere in the file name. You can labels/descriptions before or after the ID, allowing you to organize your tomes. Just save them either with a `.spell` or `.item` extension so the update command knows which one to update.
+
+## Get Customizations
+Using the  ```Avrae Utilities: Get Personal Customizations``` command in the Command Pallete, you will be prompted for what to save. This will download a customization and setup the file. Be sure to save the file with an appropriate file extension so the update command knows which one to update. The name must match the customization name.
+
+## Push updates
+Using the  ```Avrae Utilities: Push Update``` command in the Command Pallete will push an update to Avrae based on the file/location you are working in. It wil check for GVAR/Homebrew content first, then collections, and then it will push to customizations. 

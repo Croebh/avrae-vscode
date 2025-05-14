@@ -627,7 +627,7 @@ async function activate(context) {
 		let collectionIO = null
 
 		try{
-			collectionIO = JSON.parse(getFileContent(path.join(filePath, '/collection.io', true)))
+			collectionIO = JSON.parse(getFileContent(path.join(filePath, '/collection.io'), true))
 		} catch (e){
 			if (!suppressError){
 				vscode.window.showInformationMessage("Unable to find collection.io")
